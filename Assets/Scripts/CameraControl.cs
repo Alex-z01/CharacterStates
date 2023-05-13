@@ -31,8 +31,8 @@ public class CameraControl : MonoBehaviour
 
     [Header("Third Person")]
     public Transform target;
-    public float distance = 5.0f;
-    public float height = 2.0f;
+    public float thirdPersonDistance = 5.0f;
+    public float thirdPersonHeight = 2.0f;
     public float rotationDamping = 3.0f;
     public float heightDamping = 2.0f;
     public float rotationOffset = 5f;
@@ -43,14 +43,15 @@ public class CameraControl : MonoBehaviour
     public float mouseSensitivityThirdPerson = 2f;
     public float smoothTime = 0.1f; // Time taken to smoothly move to new position/rotation
 
+    [Header("Top Down")]
+    public float topDownDistance, topDownHeight;
+
     private float _xRotation = 0f;
 
     private void Start()
     {
         _cam = GetComponent<Camera>();
         Mode = CamMode.FirstPerson;
-
-        //Cursor.lockState = CursorLockMode.Locked;
     }
 
     private void Update()
@@ -107,7 +108,7 @@ public class CameraControl : MonoBehaviour
 
                 // Smoothly move camera to new position/rotation
                 Quaternion targetRotation = Quaternion.Euler(currentY, currentX, 0);
-                Vector3 targetPos = targetRotation * new Vector3(0.0f, 0.0f, -distance) + target.position;
+                Vector3 targetPos = targetRotation * new Vector3(0.0f, 0.0f, -thirdPersonDistance) + target.position;
 
                 transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Mathf.SmoothDamp(0, 1, ref yVelocity, smoothTime));
                 transform.position = Vector3.Lerp(transform.position, targetPos, Mathf.SmoothDamp(0, 1, ref yVelocity, smoothTime));
@@ -121,7 +122,7 @@ public class CameraControl : MonoBehaviour
 
             // Calculate the current rotation angles
             float wantedRotationAngle = target.eulerAngles.y + rotationOffset;
-            float wantedHeight = target.position.y + height;
+            float wantedHeight = target.position.y + thirdPersonHeight;
 
             float currentRotationAngle = transform.eulerAngles.y;
             float currentHeight = transform.position.y;
@@ -133,7 +134,7 @@ public class CameraControl : MonoBehaviour
             currentHeight = Mathf.Lerp(currentHeight, wantedHeight, heightDamping * Time.deltaTime);
 
             // Calculate the current position of the camera based on the target's position, distance, and height
-            Vector3 targetPosition = target.position - Quaternion.Euler(0, currentRotationAngle, 0) * Vector3.forward * distance;
+            Vector3 targetPosition = target.position - Quaternion.Euler(0, currentRotationAngle, 0) * Vector3.forward * thirdPersonDistance;
             targetPosition.y = currentHeight;
 
             // Set the camera's position and rotation to the calculated values
@@ -141,6 +142,24 @@ public class CameraControl : MonoBehaviour
             transform.LookAt(target);
 
             return;
+        }
+
+        if (Mode.Equals(CamMode.TopDown))
+        {
+            float wantedHeight = target.position.y + topDownHeight;
+
+            float currentHeight = transform.position.y;
+
+            // Smoothly move the camera towards the target's height
+            currentHeight = Mathf.Lerp(currentHeight, wantedHeight, heightDamping * Time.deltaTime);
+
+            // Calculate the current position of the camera based on the target's position, distance, and height
+            Vector3 targetPosition = target.position - Vector3.forward * topDownDistance;
+            targetPosition.y = currentHeight;
+
+            // Set the camera's position and rotation to the calculated values
+            transform.position = targetPosition;
+            transform.LookAt(target);
         }
     }
 
@@ -152,6 +171,8 @@ public class CameraControl : MonoBehaviour
             _cam.transform.position = firstPersonViewPoint.transform.position;
             _cam.transform.localRotation = Quaternion.identity;
 
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
             return;
         }
 
@@ -160,6 +181,20 @@ public class CameraControl : MonoBehaviour
             _cam.transform.parent = null;
 
             transform.LookAt(target.position);
+
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            return;
+        }
+
+        if (mode.Equals(CamMode.TopDown))
+        {
+            _cam.transform.parent = null;
+
+            transform.LookAt(target.position);
+
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
         }
     }
 }

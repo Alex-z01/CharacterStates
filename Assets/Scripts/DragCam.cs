@@ -1,5 +1,9 @@
 using UnityEngine;
 
+/// <summary>
+/// This class is for testing
+/// </summary>
+
 public class DragCam : MonoBehaviour
 {
     public Transform target; // The object to rotate around
