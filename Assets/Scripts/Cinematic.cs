@@ -11,7 +11,6 @@ public class Cinematic : MonoBehaviour
     public float interval = 5.0f;
     public float minDistance = 1f;
     public float maxDistance = 5f;
-    public float pivotDuration = 3f;
 
     public GameObject LetterBox;
 
